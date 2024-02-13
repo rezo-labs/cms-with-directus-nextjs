@@ -24,11 +24,11 @@ export default function Home({ posts }: HomeProps) {
 
         <div className="grid gap-4 grid-cols-3 py-8">
           {posts.map((post) => (
-            <Link key={post.id} href={`/post/${post.post_type.name}/${post.slug}`}>
+            <Link key={post.id} href={`/post/${post.post_type.translations[0].slug}/${post.translations[0].slug}`}>
               <div key={post.id} className="bg-gray-100 p-4 shadow-md rounded-md hover:shadow-lg transition duration-300">
-                <Image src={`${process.env.NEXT_PUBLIC_API_URL}/assets/${post.thumbnail}`} alt={post.title} width={300} height={200} />
-                <h2 className="text-xl font-semibold mt-2">{post.title}</h2>
-                <p className="text-gray-600 mt-2">{post.description}</p>
+                <Image src={`${process.env.NEXT_PUBLIC_API_URL}/assets/${post.thumbnail}`} alt={post.translations[0].title} width={300} height={200} />
+                <h2 className="text-xl font-semibold mt-2">{post.translations[0].title}</h2>
+                <p className="text-gray-600 mt-2">{post.translations[0].description}</p>
               </div>
             </Link>
           ))}
@@ -46,7 +46,9 @@ export const getStaticProps: GetStaticProps<HomeProps> = async () => {
       params: {
         fields: [
           '*',
-          'post_type.*'
+          'translations.*',
+          'post_type.*',
+          'post_type.translations.*',
         ],
         filter: {
           status: 'published',

@@ -22,21 +22,21 @@ export default function Blog({ post }: BlogProps) {
           Home
         </Link>
         <span className="mx-2">/</span>
-        <span>{post.title}</span>
+        <span>{post.translations[0].title}</span>
       </nav>
       <article className="max-w-2xl w-full">
-        <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
+        <h1 className="text-3xl font-bold mb-4">{post.translations[0].title}</h1>
         <p className="text-gray-500 mb-2">Published on: {new Date(post.publish_date).toLocaleDateString()}</p>
         <div className="mb-4">
           <Image
             src={`${process.env.NEXT_PUBLIC_API_URL}/assets/${post.thumbnail}`}
-            alt={post.title}
+            alt={post.translations[0].title}
             width={800}
             height={400}
             className="rounded-lg"
           />
         </div>
-        <div className="post-content" dangerouslySetInnerHTML={{ __html: post.content }} />
+        <div className="post-content" dangerouslySetInnerHTML={{ __html: post.translations[0].content }} />
       </article>
     </main>
   );
@@ -56,12 +56,18 @@ export const getStaticProps: GetStaticProps<BlogProps> = async ({ params }) => {
       params: {
         fields: [
           '*',
-          'post_type.*'
+          'translations.*',
+          'post_type.*',
+          'post_type.translations.*',
         ],
         filter: {
-          slug: params.slug,
+          translations: {
+            slug: params.slug,
+          },
           post_type: {
-            name: params.post_type
+            translations: {
+              slug: params.post_type,
+            },
           },
           status: 'published',
         },
@@ -94,8 +100,8 @@ export async function getStaticPaths() {
     } = await api.get<APIResponse<Post[]>>('/items/post', {
       params: {
         fields: [
-          'post_type.name',
-          'slug',
+          'post_type.translations.slug',
+          'translations.slug',
         ],
         filter: {
           status: 'published',
@@ -105,8 +111,8 @@ export async function getStaticPaths() {
 
     const paths = posts.map((post) => ({
       params: {
-        post_type: post.post_type.name,
-        slug: post.slug,
+        post_type: post.post_type.translations[0].slug,
+        slug: post.translations[0].slug,
       },
     }));
 
