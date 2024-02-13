@@ -15,7 +15,7 @@ interface BlogProps {
 export default function Blog({ post }: BlogProps) {
   return (
     <main
-      className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}
+      className={`flex flex-col items-center justify-between p-24 ${inter.className}`}
     >
       <nav className="text-gray-500 mb-4">
         <Link href="/" className="hover:text-gray-700">
@@ -71,6 +71,13 @@ export const getStaticProps: GetStaticProps<BlogProps> = async ({ params }) => {
           },
           status: 'published',
         },
+        deep: {
+          translations: {
+            _filter: {
+              slug: params.slug,
+            },
+          },
+        },
       },
     });
 
@@ -100,7 +107,9 @@ export async function getStaticPaths() {
     } = await api.get<APIResponse<Post[]>>('/items/post', {
       params: {
         fields: [
+          'post_type.translations.languages_code',
           'post_type.translations.slug',
+          'translations.languages_code',
           'translations.slug',
         ],
         filter: {
@@ -109,12 +118,15 @@ export async function getStaticPaths() {
       },
     });
 
-    const paths = posts.map((post) => ({
-      params: {
-        post_type: post.post_type.translations[0].slug,
-        slug: post.translations[0].slug,
-      },
-    }));
+    const paths = posts.map((post) => {
+      const languages = post.translations.map((translation) => translation.languages_code);
+      return languages.map((lang) => ({
+        params: {
+          post_type: post.post_type.translations.find((translation) => translation.languages_code === lang)?.slug,
+          slug: post.translations.find((translation) => translation.languages_code === lang)?.slug,
+        },
+      }));
+    }).flat(1);
 
     return {
       paths,
